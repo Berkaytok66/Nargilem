@@ -1,0 +1,44 @@
+group 'com.github.chinloyal.pusher_client'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    ext.kotlin_version = '1.6.10' // Kotlin sürümünü güncelledik
+    repositories {
+        google()
+        mavenCentral() // jcenter yerine mavenCentral kullanmak daha güncel ve güvenlidir
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.2.2' // Gradle plugin sürümünü güncelledik
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral() // jcenter yerine mavenCentral kullanmak daha güncel ve güvenlidir
+    }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdkVersion 31 // compileSdkVersion'ı güncelledik
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+    defaultConfig {
+        minSdkVersion 16
+    }
+    lintOptions {
+        disable 'InvalidPackage'
+    }
+}
+
+dependencies {
+    implementation "com.pusher:pusher-java-client:2.2.5"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version" // kotlin-stdlib-jdk7 yerine kotlin-stdlib kullanıyoruz
+}

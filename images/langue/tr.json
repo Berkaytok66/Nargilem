@@ -1,0 +1,46 @@
+{
+  "login": {
+    "email": "Email adresini girin",
+    "password": "Şifrenizi girin",
+    "login": "Giriş",
+    "Log_in_to_continue": "Devam etmek için giriş yapın.",
+    "Remind_me_next_time": "Bir dahaki sefere hatırlat",
+    "Sign_in":"Oturum aç"
+
+  },
+  "HomePage": {
+    "On_hold" : "Beklemede",
+    "Preparing": "Hazırlanıyor",
+    "Delivered": "Teslim Edildi",
+    "Cancel" : "İptal",
+    "Order": "Sipariş",
+    "Orders": "Siparişler",
+    "No_order": "Sipariş yok",
+    "Order_Status": "Spariş Durumu",
+    "Order_Status_Updated_to_Pending": "Spariş Durumu Beklemede Olarak Güncellendi.",
+    "Order_Status_Updated_to_Preparing" : "Spariş Durumu Hazırlanıyor Olarak Güncellendi.",
+    "Order_Status_Updated_As_Delivered" : "Spariş Durumu Teslim Edildi Olarak Güncellendi.",
+    "Order_Status_Updated_to_Canceled":"Spariş Durumu İptal Edildi Olarak Güncellendi.",
+    "You_do_not_have_access_authorization" : "Erişim izniniz bulunmamaktadır."
+  },
+  "TablesPage": {
+    "Tables": "Masalar",
+    "Search": "Ara...",
+    "TableInformation" : "Masa Bilgisi",
+    "TableInformationDialog" : "Bu masa için geçerli müşteri bilgisi bulunmamaktadır."
+  },
+  "TablesViewInfo": {
+    "Table_Details": "Masa Detayları",
+    "Error" : "Hata",
+    "Table" : "Masa",
+    "Orders": "Siparişler",
+    "Order_ID": "Sipariş ID",
+    "Customers": "Müşteriler",
+    "Last_Visit": "Son Ziyaret",
+    "Close_Session" : "Oturumu Kapat",
+    "Failed_to_close_session": "Oturum kapatılamadı"
+  },
+  "SettingsPage": {
+    "Settings": "Ayarlar"
+  }
+}

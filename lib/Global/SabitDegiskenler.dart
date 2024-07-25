@@ -1,5 +1,5 @@
 
 class SabitD {
-  static const String URL = "http://172.25.25.2:8005";
+  static const String URL = "https://nargile.mebu.com.tr";
 
 }

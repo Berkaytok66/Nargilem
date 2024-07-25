@@ -48,7 +48,7 @@ dependencies:
   quickalert: ^1.1.0
   dropdown_button2: ^2.3.9
   socket_io_client: ^2.0.3+1
-  flutter_local_notifications: ^17.1.2
+  flutter_local_notifications: ^17.2.1+2
   stomp_dart_client: ^2.0.0
   laravel_echo: ^1.0.0-beta.1
   pusher_client:
@@ -83,8 +83,12 @@ flutter:
      - images/home_dome_image.png
      - images/hoqala_icon.png
      - images/table_view_info_image.png
+     - images/settings/stock_management.png
+     - images/settings/table_management.png
+     - images/settings/settings.png
      - images/langue/tr.json
      - images/langue/en.json
+
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

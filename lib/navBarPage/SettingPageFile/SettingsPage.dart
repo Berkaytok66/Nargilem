@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:nargilem/AppLocalizations/AppLocalizations.dart';
 import 'package:nargilem/navBarPage/SettingPageFile/AromaPageFile/AromaHomePage.dart';
+import 'package:nargilem/navBarPage/SettingPageFile/SettingsPageFile/SettingHomePage.dart';
 import 'package:nargilem/navBarPage/SettingPageFile/TableControlFile/TableControlPage.dart';
-
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -20,7 +20,6 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
   void initState() {
     super.initState();
     _controller = AnimationController(vsync: this);
-
   }
 
   @override
@@ -35,7 +34,10 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
       appBar: AppBar(
         backgroundColor: HexColor("#374151"),
         automaticallyImplyLeading: false,
-        title: Text(AppLocalizations.of(context).translate("SettingsPage.Settings"),style: TextStyle(color: HexColor("#f3f4f6")),),
+        title: Text(
+          AppLocalizations.of(context).translate("SettingsPage.Settings"),
+          style: TextStyle(color: HexColor("#f3f4f6")),
+        ),
       ),
       body: Column(
         children: [
@@ -47,7 +49,6 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                 bottomRight: Radius.circular(-30.0),
               ),
             ),
-
             padding: EdgeInsets.all(16.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -87,46 +88,51 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                   crossAxisSpacing: 5.0,
                   mainAxisSpacing: 5.0,
                 ),
-                itemCount: 6, // Toplam kart sayısı
+                itemCount: 3, // Toplam kart sayısı
                 itemBuilder: (context, index) {
                   return Card(
                     color: HexColor("#374151"),
                     elevation: 15,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(3),
                     ),
                     child: InkWell(
                       onTap: () {
                         // Kart tıklama işlemi
                         switch (index) {
-                          case 0:{
+                          case 0:
                             Navigator.push(context, MaterialPageRoute(builder: (context) => AromaHomePage()));
-                          }
-
-
-                          case 1:{
+                            break;
+                          case 1:
                             Navigator.push(context, MaterialPageRoute(builder: (context) => TableControlPage()));
-                          }
+                            break;
+                          case 2:
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => SettingHomePage()));
+                            break;
                         }
                       },
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            _getIconForIndex(index),
-                            size: 50,
-                            color: _getColorForIndex(index),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            _getTextForIndex(index),
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: HexColor("#f3f4f6")
+                      child: Padding(
+                        padding: const EdgeInsets.all(3.0), // Padding ekleniyor
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Image.asset(
+                                _getImageForIndex(index),
+                                fit: BoxFit.cover,
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 10),
+                            Text(
+                              _getTextForIndex(index),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: HexColor("#f3f4f6"),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -139,41 +145,16 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
     );
   }
 
-  IconData _getIconForIndex(int index) {
+  String _getImageForIndex(int index) {
     switch (index) {
       case 0:
-        return CupertinoIcons.arrow_3_trianglepath;
+        return 'images/settings/stock_management.png';
       case 1:
-        return CupertinoIcons.table_fill;
+        return 'images/settings/table_management.png';
       case 2:
-        return CupertinoIcons.chat_bubble_2_fill;
-      case 3:
-        return CupertinoIcons.settings_solid;
-      case 4:
-        return CupertinoIcons.play_arrow_solid;
-      case 5:
-        return CupertinoIcons.book_solid;
+        return 'images/settings/settings.png';
       default:
-        return CupertinoIcons.question_circle;
-    }
-  }
-
-  Color _getColorForIndex(int index) {
-    switch (index) {
-      case 0:
-        return Colors.orange;
-      case 1:
-        return Colors.pink;
-      case 2:
-        return Colors.purple;
-      case 3:
-        return Colors.blue;
-      case 4:
-        return Colors.orange;
-      case 5:
-        return Colors.pink;
-      default:
-        return Colors.grey;
+        return 'images/unknown.png';
     }
   }
 
@@ -184,16 +165,9 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
       case 1:
         return 'Masa Yönetimi';
       case 2:
-        return 'Chat';
-      case 3:
         return 'Settings';
-      case 4:
-        return 'Videos';
-      case 5:
-        return 'Subjects';
       default:
         return 'Unknown';
     }
   }
 }
-

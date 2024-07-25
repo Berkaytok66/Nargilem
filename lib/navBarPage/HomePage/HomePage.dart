@@ -1,6 +1,5 @@
-import 'dart:ffi';
+import 'dart:convert';
 import 'package:awesome_dialog/awesome_dialog.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -27,7 +26,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   List<dynamic> _orders = [];
   int? _expandedOrderId;
   String _selectedStatus = '1'; // Başlangıçta "Beklemede" durumu seçili
-  late Pusherclient _pusherClient;
+  final PusherClientManager pusherClientManager = PusherClientManager();
+
   final List<Map<String, String>> _statusOptions = [
     {'value': '1', 'label': 'Beklemede'},
     {'value': '2', 'label': 'Hazırlanıyor'},
@@ -41,22 +41,51 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _controller = AnimationController(vsync: this);
     _Pref();
     _fetchOrders(_selectedStatus);
-    _Token();
 
-
-
+    _TokenClientManage();
   }
-  Future<void> _Token() async{
+
+  Future<void> _TokenClientManage() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
-    _pusherClient = Pusherclient(token!);
-    _pusherClient.connectPusher();
+    if (token == null) {
+      // Token bulunamadıysa hata yönetimi
+      print("Token bulunamadı");
+      return;
+    }
+
+    pusherClientManager.initialize(token, (eventData) {
+      // Gelen veriyi parse ediyoruz
+      try {
+        final parsedData = jsonDecode(eventData);
+
+        // Parse edilmiş veriyi loga yazıyoruz
+        print("Parsed Data: $parsedData");
+
+        // "order_status" anahtarını kontrol ediyoruz
+        if (parsedData.containsKey('data') && parsedData['data'].containsKey('order_status')) {
+          if (parsedData['data']['order_status'] < 5) {
+
+            if (mounted) {
+              setState(() {
+                _fetchOrders(_selectedStatus); // Sipariş listesini güncelle
+              });
+            }
+          }
+        }
+      } catch (e) {
+        // JSON parse hatası varsa hata mesajı
+        print("JSON parse hatası: $e");
+      }
+    });
+
+
   }
+
   @override
   void dispose() {
     _controller.dispose();
-    _pusherClient.disconnect();
     super.dispose();
   }
 
@@ -107,7 +136,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   void wasDeliveredOrder(int orderId) {
     _updateOrderStatus(orderId, "3"); // Teslim Edildi
-
   }
 
   @override
@@ -147,21 +175,30 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ),
           Expanded(
             child: _orders.isEmpty
-                ? Center(child: Text(AppLocalizations.of(context).translate("HomePage.No_order")))
+                ? Center(
+                child: Text(AppLocalizations.of(context)
+                    .translate("HomePage.No_order")))
                 : SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: _orders.map((order) {
-                    bool isExpanded = _expandedOrderId == order['id'];
+                    bool isExpanded =
+                        _expandedOrderId == order['id'];
                     final orderStatus = _statusOptions.firstWhere(
-                          (status) => status['value'] == order['status'],
-                      orElse: () => {'value': 'unknown', 'label': 'Bilinmiyor'},
+                          (status) =>
+                      status['value'] == order['status'],
+                      orElse: () => {
+                        'value': 'unknown',
+                        'label': 'Bilinmiyor'
+                      },
                     );
                     return GestureDetector(
                       onTap: () {
                         setState(() {
-                          _expandedOrderId = isExpanded ? null : order['id'];
+                          _expandedOrderId = isExpanded
+                              ? null
+                              : order['id'];
                         });
                       },
                       child: Card(
@@ -173,13 +210,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment:
+                            CrossAxisAlignment.start,
                             children: [
                               Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
+                                crossAxisAlignment:
+                                CrossAxisAlignment.center,
                                 children: [
                                   ClipRRect(
-                                    borderRadius: BorderRadius.circular(8.0),
+                                    borderRadius:
+                                    BorderRadius.circular(8.0),
                                     child: Image.asset(
                                       "images/home_dome_image.png",
                                       height: 80.0,
@@ -190,30 +230,47 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                   const SizedBox(width: 20),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "${AppLocalizations.of(context).translate("HomePage.Order")} : ${order['id']}",
+                                          "${AppLocalizations.of(
+                                              context)
+                                              .translate(
+                                              "HomePage.Order")} : ${order['id']}",
                                           style: TextStyle(
                                               fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: HexColor("#f5f5f5")),
+                                              fontWeight:
+                                              FontWeight.bold,
+                                              color: HexColor(
+                                                  "#f5f5f5")),
                                         ),
                                         Text(
                                           "${order['table']['table_number']}",
                                           style: TextStyle(
                                               fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: HexColor("#f5f5f5")),
+                                              fontWeight:
+                                              FontWeight.bold,
+                                              color: HexColor(
+                                                  "#f5f5f5")),
                                         ),
                                         Row(
                                           children: [
-                                            FaIcon(FontAwesomeIcons.clock, color: HexColor("#e2e8f0"), size: 12),
-                                            const SizedBox(width: 7,),
+                                            FaIcon(
+                                                FontAwesomeIcons
+                                                    .clock,
+                                                color: HexColor(
+                                                    "#e2e8f0"),
+                                                size: 12),
+                                            const SizedBox(
+                                              width: 7,
+                                            ),
                                             Text(
                                               "${order['created_at']}",
                                               style: TextStyle(
-                                                  fontSize: 16, color: HexColor("#d4d4d4")),
+                                                  fontSize: 16,
+                                                  color: HexColor(
+                                                      "#d4d4d4")),
                                             ),
                                           ],
                                         ),
@@ -221,16 +278,23 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                     ),
                                   ),
                                   Column(
-                                    mainAxisAlignment: MainAxisAlignment.center, // Dikeyde ortalamak için eklendi
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.center,
+                                    // Dikeyde ortalamak için eklendi
                                     children: [
                                       Container(
                                         decoration: BoxDecoration(
-                                          color: HexColor("#450a0a"), // Arka plan rengi
+                                          color: HexColor(
+                                              "#450a0a"), // Arka plan rengi
                                           border: Border.all(
-                                            color: HexColor("#e2e8f0"), // Çerçeve rengi
-                                            width: 2.0, // Çerçeve kalınlığı
+                                            color: HexColor(
+                                                "#e2e8f0"), // Çerçeve rengi
+                                            width:
+                                            2.0, // Çerçeve kalınlığı
                                           ),
-                                          borderRadius: BorderRadius.circular(8.0), // Köşe yuvarlaklığı
+                                          borderRadius:
+                                          BorderRadius.circular(
+                                              8.0), // Köşe yuvarlaklığı
                                         ),
                                         child: Center(
                                           child: IconButton(
@@ -239,10 +303,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
                                               Navigator.push(
                                                 context,
-                                                MaterialPageRoute(builder: (context) => SingleOrderDetailScreen(orderId: order['id'])),
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        SingleOrderDetailScreen(
+                                                            orderId:
+                                                            order['id'])),
                                               );
                                             },
-                                            icon: FaIcon(FontAwesomeIcons.eye, color: HexColor("#e2e8f0"), size: 25),
+                                            icon: FaIcon(
+                                                FontAwesomeIcons
+                                                    .eye,
+                                                color: HexColor(
+                                                    "#e2e8f0"),
+                                                size: 25),
                                           ),
                                         ),
                                       ),
@@ -257,121 +330,205 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                     const Divider(),
                                     const SizedBox(height: 10),
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                      MainAxisAlignment.center,
                                       children: [
                                         Container(
-                                          width: screenSize.width * 0.35,
+                                          width: screenSize.width *
+                                              0.35,
                                           child: ElevatedButton(
-                                            onPressed: (){
-                                              pendingOrder(order['id']);
+                                            onPressed: () {
+                                              pendingOrder(
+                                                  order['id']);
 
                                               AwesomeDialog(
                                                 context: context,
-                                                dialogType: DialogType.success,
-                                                animType: AnimType.rightSlide,
-                                                title: AppLocalizations.of(context).translate("HomePage.Order_Status"),
-                                                desc:
-                                                  AppLocalizations.of(context).translate("HomePage.Order_Status_Updated_to_Pending"),
+                                                dialogType: DialogType
+                                                    .success,
+                                                animType: AnimType
+                                                    .rightSlide,
+                                                title: AppLocalizations.of(
+                                                    context)
+                                                    .translate(
+                                                    "HomePage.Order_Status"),
+                                                desc: AppLocalizations.of(
+                                                    context)
+                                                    .translate(
+                                                    "HomePage.Order_Status_Updated_to_Pending"),
                                                 btnOkOnPress: () {},
                                               ).show();
                                             },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: HexColor("#a3a3a3"),
-                                              shape: const RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.zero,
+                                            style: ElevatedButton
+                                                .styleFrom(
+                                              backgroundColor:
+                                              HexColor(
+                                                  "#a3a3a3"),
+                                              shape:
+                                              const RoundedRectangleBorder(
+                                                borderRadius:
+                                                BorderRadius
+                                                    .zero,
                                               ),
                                             ),
                                             child: Text(
-                                              AppLocalizations.of(context).translate("HomePage.On_hold"),
-                                              style:const TextStyle(color: Colors.white),
+                                              AppLocalizations.of(
+                                                  context)
+                                                  .translate(
+                                                  "HomePage.On_hold"),
+                                              style:
+                                              const TextStyle(
+                                                  color: Colors
+                                                      .white),
                                             ),
                                           ),
                                         ),
                                         const SizedBox(width: 10),
                                         Container(
-                                          width: screenSize.width * 0.35,
+                                          width: screenSize.width *
+                                              0.35,
                                           child: ElevatedButton(
-                                            onPressed: (){
-                                              approveOrder(order['id']);
+                                            onPressed: () {
+                                              approveOrder(
+                                                  order['id']);
                                               AwesomeDialog(
                                                 context: context,
-                                                dialogType: DialogType.success,
-                                                animType: AnimType.rightSlide,
-                                                title:AppLocalizations.of(context).translate("HomePage.Order_Status"),
-                                                desc:
-                                                AppLocalizations.of(context).translate("HomePage.Order_Status_Updated_to_Preparing"),
+                                                dialogType: DialogType
+                                                    .success,
+                                                animType: AnimType
+                                                    .rightSlide,
+                                                title: AppLocalizations.of(
+                                                    context)
+                                                    .translate(
+                                                    "HomePage.Order_Status"),
+                                                desc: AppLocalizations.of(
+                                                    context)
+                                                    .translate(
+                                                    "HomePage.Order_Status_Updated_to_Preparing"),
                                                 btnOkOnPress: () {},
                                               ).show();
                                             },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: HexColor("#fbbf24"),
-                                              shape: const RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.zero,
+                                            style: ElevatedButton
+                                                .styleFrom(
+                                              backgroundColor:
+                                              HexColor(
+                                                  "#fbbf24"),
+                                              shape:
+                                              const RoundedRectangleBorder(
+                                                borderRadius:
+                                                BorderRadius
+                                                    .zero,
                                               ),
                                             ),
                                             child: Text(
-                                              AppLocalizations.of(context).translate("HomePage.Preparing"),
-                                              style:const TextStyle(color: Colors.white),
+                                              AppLocalizations.of(
+                                                  context)
+                                                  .translate(
+                                                  "HomePage.Preparing"),
+                                              style:
+                                              const TextStyle(
+                                                  color: Colors
+                                                      .white),
                                             ),
                                           ),
                                         ),
                                       ],
                                     ),
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                      MainAxisAlignment.center,
                                       children: [
                                         Container(
-                                          width: screenSize.width * 0.35,
+                                          width: screenSize.width *
+                                              0.35,
                                           child: ElevatedButton(
-                                            onPressed: (){
-                                              wasDeliveredOrder(order['id']);
+                                            onPressed: () {
+                                              wasDeliveredOrder(
+                                                  order['id']);
                                               AwesomeDialog(
                                                 context: context,
-                                                dialogType: DialogType.success,
-                                                animType: AnimType.rightSlide,
-                                                title: AppLocalizations.of(context).translate("HomePage.Order_Status"),
-                                                desc:
-                                                AppLocalizations.of(context).translate("HomePage.Order_Status_Updated_As_Delivered"),
+                                                dialogType: DialogType
+                                                    .success,
+                                                animType: AnimType
+                                                    .rightSlide,
+                                                title: AppLocalizations.of(
+                                                    context)
+                                                    .translate(
+                                                    "HomePage.Order_Status"),
+                                                desc: AppLocalizations.of(
+                                                    context)
+                                                    .translate(
+                                                    "HomePage.Order_Status_Updated_As_Delivered"),
                                                 btnOkOnPress: () {},
                                               ).show();
                                             },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.green,
-                                              shape: const RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.zero,
+                                            style: ElevatedButton
+                                                .styleFrom(
+                                              backgroundColor:
+                                              Colors.green,
+                                              shape:
+                                              const RoundedRectangleBorder(
+                                                borderRadius:
+                                                BorderRadius
+                                                    .zero,
                                               ),
                                             ),
                                             child: Text(
-                                                AppLocalizations.of(context).translate("HomePage.Delivered"),
-                                              style:const TextStyle(color: Colors.white),
+                                              AppLocalizations.of(
+                                                  context)
+                                                  .translate(
+                                                  "HomePage.Delivered"),
+                                              style:
+                                              const TextStyle(
+                                                  color: Colors
+                                                      .white),
                                             ),
                                           ),
                                         ),
                                         const SizedBox(width: 10),
                                         Container(
-                                          width: screenSize.width * 0.35,
+                                          width: screenSize.width *
+                                              0.35,
                                           child: ElevatedButton(
-                                            onPressed: (){
-                                              cancelOrder(order['id']);
+                                            onPressed: () {
+                                              cancelOrder(
+                                                  order['id']);
                                               AwesomeDialog(
                                                 context: context,
-                                                dialogType: DialogType.success,
-                                                animType: AnimType.rightSlide,
-                                                title: AppLocalizations.of(context).translate("HomePage.Order_Status"),
-                                                desc:
-                                                AppLocalizations.of(context).translate("HomePage.Order_Status_Updated_to_Canceled"),
+                                                dialogType: DialogType
+                                                    .success,
+                                                animType: AnimType
+                                                    .rightSlide,
+                                                title: AppLocalizations.of(
+                                                    context)
+                                                    .translate(
+                                                    "HomePage.Order_Status"),
+                                                desc: AppLocalizations.of(
+                                                    context)
+                                                    .translate(
+                                                    "HomePage.Order_Status_Updated_to_Canceled"),
                                                 btnOkOnPress: () {},
                                               ).show();
                                             },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.red,
-                                              shape: const RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.zero,
+                                            style: ElevatedButton
+                                                .styleFrom(
+                                              backgroundColor:
+                                              Colors.red,
+                                              shape:
+                                              const RoundedRectangleBorder(
+                                                borderRadius:
+                                                BorderRadius
+                                                    .zero,
                                               ),
                                             ),
                                             child: Text(
-                                                AppLocalizations.of(context).translate("HomePage.Cancel"),
-                                              style:const TextStyle(color: Colors.white),
+                                              AppLocalizations.of(
+                                                  context)
+                                                  .translate(
+                                                  "HomePage.Cancel"),
+                                              style:
+                                              const TextStyle(
+                                                  color: Colors
+                                                      .white),
                                             ),
                                           ),
                                         ),
@@ -392,9 +549,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         ],
       )
           : Center(
-            child: Text(
-                AppLocalizations.of(context).translate("HomePage.You_do_not_have_access_authorization"),
-             style:const TextStyle(fontSize: 20),
+        child: Text(
+          AppLocalizations.of(context).translate(
+              "HomePage.You_do_not_have_access_authorization"),
+          style: const TextStyle(fontSize: 20),
         ),
       ),
     );

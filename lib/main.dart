@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:nargilem/AppLocalizations/AppLocalizations.dart';
 import 'package:nargilem/Global/PusherClient.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';

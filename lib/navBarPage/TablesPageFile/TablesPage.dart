@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:http/http.dart' as http;
 import 'package:nargilem/AppLocalizations/AppLocalizations.dart';
+import 'package:nargilem/Global/PusherClient.dart';
 import 'dart:convert';
 import 'package:nargilem/Global/SabitDegiskenler.dart';
 import 'package:nargilem/navBarPage/TablesPageFile/TablesViewInfo.dart';
@@ -19,12 +20,64 @@ class _TablesPageState extends State<TablesPage> with SingleTickerProviderStateM
   late AnimationController _controller;
   List<RestaurantTableClass> tables = [];
   List<RestaurantTableClass> filteredTables = [];
+  final PusherClientManager pusherClientManager = PusherClientManager();
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(vsync: this);
     fetchTables();
+    _TokenClientManage();
+  }
+
+  Future<void> _TokenClientManage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    if (token == null) {
+      // Token bulunamadıysa hata yönetimi
+      print("Token bulunamadı");
+      return;
+    }
+
+    pusherClientManager.initialize(token, (eventData) {
+      // Gelen veriyi parse ediyoruz
+      try {
+        final parsedData = jsonDecode(eventData);
+
+        // Parse edilmiş veriyi loga yazıyoruz
+        print("Parsed Data: $parsedData");
+
+        // "order_status" anahtarını kontrol ediyoruz
+        if (parsedData.containsKey('data') && parsedData['data'].containsKey('table_id')) {
+          int tableId = parsedData['data']['table_id'];
+          bool tableFound = false;
+          for (var table in tables) {
+            if (table.uuid == tableId) {
+              tableFound = true;
+              if (table.isBusy == 0) {
+                // Masa boşsa güncelle
+                setState(() {
+                  fetchTables();
+                });
+              }
+              break;
+            }
+          }
+
+          if (!tableFound) {
+            // Eğer gelen table_id listede yoksa (örneğin yeni bir masa eklenmiş olabilir)
+            setState(() {
+              fetchTables();
+            });
+          }
+        }
+      } catch (e) {
+        // JSON parse hatası varsa hata mesajı
+        print("JSON parse hatası: $e");
+      }
+    });
+
   }
 
   @override
@@ -107,7 +160,7 @@ class _TablesPageState extends State<TablesPage> with SingleTickerProviderStateM
               padding: const EdgeInsets.all(8.0),
               child: GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, // Her satırda kaç masa olacağı
+                  crossAxisCount:3, // Her satırda kaç masa olacağı
                   crossAxisSpacing: 8.0,
                   mainAxisSpacing: 8.0,
                 ),
@@ -123,7 +176,7 @@ class _TablesPageState extends State<TablesPage> with SingleTickerProviderStateM
                         animType: AnimType.rightSlide,
                         title: AppLocalizations.of(context).translate("TablesPage.TableInformation"),
                         desc:
-                          AppLocalizations.of(context).translate("TablesPage.TableInformationDialog"),
+                        AppLocalizations.of(context).translate("TablesPage.TableInformationDialog"),
                         btnOkOnPress: () {},
                       ).show()
                           : Navigator.push(

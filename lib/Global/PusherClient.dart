@@ -1,23 +1,38 @@
-
+import 'dart:convert';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:pusher_client/pusher_client.dart';
+import 'NotificationService.dart';
 
-class Pusherclient {
+class PusherClientManager {
+  static final PusherClientManager _instance = PusherClientManager._internal();
   late PusherClient pusher;
   Channel? channel;
-  final String token;
+  late String token;
+  late Function(dynamic) onEventReceived;
+  late NotificationService notificationService;
 
-  Pusherclient(this.token);
+  factory PusherClientManager() {
+    return _instance;
+  }
 
-  void connectPusher() {
+  PusherClientManager._internal() {
+    notificationService = NotificationService();
+  }
+
+  void initialize(String token, Function(dynamic) onEventReceived) {
+    this.token = token;
+    this.onEventReceived = onEventReceived;
+
     PusherOptions options = PusherOptions(
-      host: '168.119.115.246', // Özel sunucu
-      wsPort: 6002, // Özel port
-      encrypted: false, // İletişimin şifreli olup olmadığını belirtir
+      host: '168.119.115.246',
+      wsPort: 6002,
+      encrypted: false,
       auth: PusherAuth(
-        'http://172.25.25.2:8005/api/broadcasting/auth',
+        'https://nargile.mebu.com.tr/broadcasting/auth',
         headers: {
-          'Authorization':
-          'Bearer $token',
+          'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
       ),
@@ -50,12 +65,23 @@ class Pusherclient {
     }
 
     try {
-      channel = pusher.subscribe('private-order-status-updated.85150235-34cd-424b-9052-be4e7075ac72');
-      channel!.bind('App\\Events\\DeviceOrderUpdateEvent', (dynamic event) {
+      channel = pusher.subscribe('private-terminal-channel');
+      channel?.bind('App\\Events\\TerminalEvent', (dynamic event) {
         print("Event received: ${event.data}");
-      });
-      channel!.bind('pusher:subscription_succeeded', (dynamic data) {
-        print("Subscription succeeded: $data");
+        onEventReceived(event.data); // Mesajı HomePage widget'ına ilet
+
+        //sadece spariş bildirimi
+        // Bildirim gönder
+        final parsedData = jsonDecode(event.data);
+        if (parsedData.containsKey('pageName')) {
+          if (parsedData["data"]["order_status"] == 1) {
+            notificationService.showNotification(
+              'Nargilem',
+              'Hey!!! Yeni bir siparişiniz var🧐',
+            );
+          }
+
+        }
       });
     } catch (e) {
       print("Error subscribing to channel: $e");

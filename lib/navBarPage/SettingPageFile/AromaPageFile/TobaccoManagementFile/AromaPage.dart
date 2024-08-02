@@ -21,7 +21,7 @@ class _AromaPageState extends State<AromaPage> with SingleTickerProviderStateMix
   late AnimationController _controller;
   final TextEditingController _controllerAromaAdd = TextEditingController();
   final TextEditingController _controllerAromaUpdate = TextEditingController();
-  late List<bool> _isExpanded;
+  List<bool> _isExpanded = [];
   List<dynamic> flavours = []; // Gelen veriyi tutmak için bir liste
   Map<int, List<dynamic>> flavourTypes = {}; // Genişletilmiş veriyi tutmak için bir harita
   List<dynamic> availableFlavourTypes = []; // Mevcut aromaları tutmak için bir liste
@@ -53,8 +53,8 @@ class _AromaPageState extends State<AromaPage> with SingleTickerProviderStateMix
 
     if (response.statusCode == 200) {
       setState(() {
-        flavours = json.decode(response.body)['data'];
-        _isExpanded = List<bool>.filled(flavours.length, false);
+        flavours = List<dynamic>.from(json.decode(response.body)['data']);
+        _isExpanded = List<bool>.filled(flavours.length, false, growable: true);
       });
     } else {
       throw Exception('Failed to load flavours');
@@ -72,7 +72,7 @@ class _AromaPageState extends State<AromaPage> with SingleTickerProviderStateMix
 
     if (response.statusCode == 200) {
       setState(() {
-        availableFlavourTypes = json.decode(response.body)['data'];
+        availableFlavourTypes = List<dynamic>.from(json.decode(response.body)['data']);
       });
     } else {
       throw Exception('Failed to load available flavour types');
@@ -198,7 +198,6 @@ class _AromaPageState extends State<AromaPage> with SingleTickerProviderStateMix
         backgroundColor: Colors.redAccent,
         gravity: ToastGravity.TOP,
       );
-
     }
   }
 
@@ -276,20 +275,23 @@ class _AromaPageState extends State<AromaPage> with SingleTickerProviderStateMix
 
   void _toggleExpansion(int index) {
     setState(() {
-      _isExpanded[index] = !_isExpanded[index];
-      if (_isExpanded[index]) {
-        _fetchFlavourTypes(flavours[index]['id']); // Expand olduğunda veriyi çek
+      if (index >= 0 && index < _isExpanded.length) {
+        _isExpanded[index] = !_isExpanded[index];
+        if (_isExpanded[index]) {
+          _fetchFlavourTypes(flavours[index]['id']); // Expand olduğunda veriyi çek
+        }
       }
     });
   }
+
   void _handleSubmitted(String value) {
     // Enter tuşuna basıldığında yapılacak işlemler buraya yazılır
     if (_controllerAromaAdd.text.isNotEmpty) {
       _addFlavour(_controllerAromaAdd.text);
       _controllerAromaAdd.clear(); // text field temizler
     }
-
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -381,6 +383,9 @@ class _AromaPageState extends State<AromaPage> with SingleTickerProviderStateMix
                     child: ListView.builder(
                       itemCount: flavours.length,
                       itemBuilder: (context, index) {
+                        if (index >= flavours.length) {
+                          return Container(); // Boş bir widget döndürün
+                        }
                         final flavour = flavours[index];
                         final flavourId = flavour['id'];
                         return GestureDetector(
@@ -542,7 +547,7 @@ class _AromaPageState extends State<AromaPage> with SingleTickerProviderStateMix
                                               ),
                                               Padding(
                                                 padding: EdgeInsets.symmetric(horizontal: 8.0),
-                                                child: Text("Mevcut Aroma Tipleri",style: TextStyle(color: Colors.white)),
+                                                child: Text("Mevcut Aroma Tipleri", style: TextStyle(color: Colors.white)),
                                               ),
                                               Expanded(
                                                 child: Divider(
@@ -561,6 +566,9 @@ class _AromaPageState extends State<AromaPage> with SingleTickerProviderStateMix
                                             physics: NeverScrollableScrollPhysics(),
                                             itemCount: flavourTypes[flavourId]?.length,
                                             itemBuilder: (context, typeIndex) {
+                                              if (typeIndex < 0 || typeIndex >= flavourTypes[flavourId]!.length) {
+                                                return Container();
+                                              }
                                               final flavourType = flavourTypes[flavourId]?[typeIndex];
                                               final typeId = flavourType['id'];
                                               return Card(
@@ -616,7 +624,7 @@ class _AromaPageState extends State<AromaPage> with SingleTickerProviderStateMix
                                             ),
                                             Padding(
                                               padding: EdgeInsets.symmetric(horizontal: 8.0),
-                                              child: Text("Diğer Aroma Tipleri",style: TextStyle(color: Colors.white)),
+                                              child: Text("Diğer Aroma Tipleri", style: TextStyle(color: Colors.white)),
                                             ),
                                             Expanded(
                                               child: Divider(

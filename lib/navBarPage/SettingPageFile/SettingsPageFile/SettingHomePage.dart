@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:nargilem/AppLocalizations/AppLocalizations.dart';
+import 'package:nargilem/navBarPage/SettingPageFile/SettingsPageFile/AboutUsPageFile/AboutUsPage.dart';
 import 'package:nargilem/navBarPage/SettingPageFile/SettingsPageFile/NotificationSettingsFile/NotificationSettingsPage.dart';
 
 class SettingHomePage extends StatefulWidget {
@@ -31,16 +32,19 @@ class _SettingHomePageState extends State<SettingHomePage> with SingleTickerProv
     // Örneğin, ilgili ayarlar sayfasına yönlendirme yapabilirsiniz.
 
     switch (menuName) {
-      case 'Dil' :
-        //Navigator.push(context, MaterialPageRoute(builder: (context) => NotificationSettingsPage()));
-        print('$menuName tıklandı');
-        break;
-      case 'Tema' :
-        print('$menuName tıklandı');
-        break;
+      //case 'Dil' :
+      //  //Navigator.push(context, MaterialPageRoute(builder: (context) => NotificationSettingsPage()));
+      //  print('$menuName tıklandı');
+      //  break;
+      //case 'Tema' :
+      //  print('$menuName tıklandı');
+      //  break;
       case 'Bildirim':
         Navigator.push(context, MaterialPageRoute(builder: (context) => NotificationSettingsPage()));
-
+        break;
+      case 'Hakkımızda' :
+        print('$menuName tıklandı');
+        Navigator.push(context, MaterialPageRoute(builder: (context) => AboutUsPage()));
         break;
     }
   }
@@ -122,15 +126,15 @@ class _SettingHomePageState extends State<SettingHomePage> with SingleTickerProv
             ),
           ),
           SizedBox(height:24.0),
-          _buildMenuItem(Icons.language, 'Dil Ayarları', Icons.arrow_forward_ios, 'Dil'),
-          Divider(),
-          _buildMenuItem(Icons.palette, 'Tema Ayarları', Icons.arrow_forward_ios, 'Tema'),
-          Divider(),
+         // _buildMenuItem(Icons.language, 'Dil Ayarları', Icons.arrow_forward_ios, 'Dil'),
+         // Divider(),
+         // _buildMenuItem(Icons.palette, 'Tema Ayarları', Icons.arrow_forward_ios, 'Tema'),
+       //   Divider(),
           _buildMenuItem(Icons.notifications, 'Bildirim Ayarları', Icons.arrow_forward_ios, 'Bildirim'),
+       //   Divider(),
+        //  _buildMenuItem(Icons.lock, 'Güvenlik Ayarları', Icons.arrow_forward_ios, 'Güvenlik'),
           Divider(),
-          _buildMenuItem(Icons.lock, 'Güvenlik Ayarları', Icons.arrow_forward_ios, 'Güvenlik'),
-          Divider(),
-          _buildMenuItem(Icons.info, 'Hakkında', Icons.arrow_forward_ios, 'Hakkında'),
+          _buildMenuItem(Icons.info, 'Hakkımızda', Icons.arrow_forward_ios, 'Hakkımızda'),
         ],
       ),
     );

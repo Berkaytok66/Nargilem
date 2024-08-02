@@ -62,7 +62,7 @@ class _AromaHomePageState extends State<AromaHomePage> with SingleTickerProvider
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Hoqala Cafe',
+                      'EnClass',
                       style: TextStyle(
                         color: HexColor("#f3f4f6"),
                         fontSize: 20,
@@ -77,10 +77,7 @@ class _AromaHomePageState extends State<AromaHomePage> with SingleTickerProvider
                     ),
                   ],
                 ),
-                CircleAvatar(
-                  backgroundImage: AssetImage('images/hoqala_icon.png'),
-                  radius: 50,
-                ),
+              
               ],
             ),
           ),

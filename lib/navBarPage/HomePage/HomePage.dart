@@ -143,19 +143,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     var screenSize = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: HexColor("#374151"),
         automaticallyImplyLeading: false,
-        iconTheme: IconThemeData(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.white
-              : Colors.black,
-        ),
-        title: Text(AppLocalizations.of(context).translate("HomePage.Orders")),
+
+        title: Text(AppLocalizations.of(context).translate("HomePage.Orders"),style: TextStyle(color: HexColor("#f3f4f6")),),
       ),
       body: _personalController
           ? Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(1.0),
             child: DropdownButton2(
               isExpanded: true,
               value: _selectedStatus,
@@ -180,7 +177,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     .translate("HomePage.No_order")))
                 : SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(5.0),
                 child: Column(
                   children: _orders.map((order) {
                     bool isExpanded =
@@ -278,44 +275,28 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                     ),
                                   ),
                                   Column(
-                                    mainAxisAlignment:
-                                    MainAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     // Dikeyde ortalamak için eklendi
                                     children: [
                                       Container(
                                         decoration: BoxDecoration(
-                                          color: HexColor(
-                                              "#450a0a"), // Arka plan rengi
+                                          color: HexColor("#e4e4e7"), // Arka plan rengi
                                           border: Border.all(
-                                            color: HexColor(
-                                                "#e2e8f0"), // Çerçeve rengi
-                                            width:
-                                            2.0, // Çerçeve kalınlığı
+                                            color: HexColor("#27272a"), // Çerçeve rengi
+                                            width: 2.0, // Çerçeve kalınlığı
                                           ),
-                                          borderRadius:
-                                          BorderRadius.circular(
-                                              8.0), // Köşe yuvarlaklığı
+                                          borderRadius: BorderRadius.circular(8.0), // Köşe yuvarlaklığı
                                         ),
                                         child: Center(
                                           child: IconButton(
                                             onPressed: () {
                                               // Butonun tıklanma olayı
-
                                               Navigator.push(
                                                 context,
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        SingleOrderDetailScreen(
-                                                            orderId:
-                                                            order['id'])),
+                                                MaterialPageRoute(builder: (context) => SingleOrderDetailScreen(orderId: order['id'])),
                                               );
                                             },
-                                            icon: FaIcon(
-                                                FontAwesomeIcons
-                                                    .eye,
-                                                color: HexColor(
-                                                    "#e2e8f0"),
-                                                size: 25),
+                                            icon: FaIcon(FontAwesomeIcons.eye, color: HexColor("#475569"), size: 25),
                                           ),
                                         ),
                                       ),
@@ -334,27 +315,17 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                       MainAxisAlignment.center,
                                       children: [
                                         Container(
-                                          width: screenSize.width *
-                                              0.35,
+                                          width: screenSize.width * 0.35,
                                           child: ElevatedButton(
                                             onPressed: () {
-                                              pendingOrder(
-                                                  order['id']);
+                                              pendingOrder(order['id']);
 
                                               AwesomeDialog(
                                                 context: context,
-                                                dialogType: DialogType
-                                                    .success,
-                                                animType: AnimType
-                                                    .rightSlide,
-                                                title: AppLocalizations.of(
-                                                    context)
-                                                    .translate(
-                                                    "HomePage.Order_Status"),
-                                                desc: AppLocalizations.of(
-                                                    context)
-                                                    .translate(
-                                                    "HomePage.Order_Status_Updated_to_Pending"),
+                                                dialogType: DialogType.success,
+                                                animType: AnimType.rightSlide,
+                                                title: AppLocalizations.of(context).translate("HomePage.Order_Status"),
+                                                desc: AppLocalizations.of(context).translate("HomePage.Order_Status_Updated_to_Pending"),
                                                 btnOkOnPress: () {},
                                               ).show();
                                             },
@@ -549,10 +520,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         ],
       )
           : Center(
-        child: Text(
-          AppLocalizations.of(context).translate(
-              "HomePage.You_do_not_have_access_authorization"),
-          style: const TextStyle(fontSize: 20),
+            child: Text(
+             AppLocalizations.of(context).translate(
+                "HomePage.You_do_not_have_access_authorization"),
+             style: const TextStyle(fontSize: 20),
         ),
       ),
     );

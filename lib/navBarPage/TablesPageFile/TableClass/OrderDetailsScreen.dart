@@ -38,7 +38,6 @@ class _SingleOrderDetailScreenState extends State<SingleOrderDetailScreen> {
       headers: {
         'Authorization': 'Bearer $token',
       },
-
     );
 
     if (response.statusCode == 200) {
@@ -84,21 +83,187 @@ class _SingleOrderDetailScreenState extends State<SingleOrderDetailScreen> {
     return formatter.format(parsedDateTime);
   }
 
-  double getProgressValue(String ratio) {
-    switch (double.parse(ratio)) {
-      case 1.0:
-        return 0.3;
-      case 2.0:
-        return 0.6;
-      case 3.0:
-        return 1.0;
-      default:
-        return 0.0;
-    }
+  double calculateBlendAmount(double ratio, int grams) {
+    return grams * (ratio / 100);
+  }
+
+  void showBlendDetails(BuildContext context, List customBlend) {
+    showModalBottomSheet(
+      backgroundColor: HexColor("#f5f5f5"),
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+      ),
+      builder: (BuildContext context) {
+        int selectedButton = 0;
+        int grams = 20; // Varsayılan gramaj
+
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Container(
+                padding: EdgeInsets.all(16.0),
+                height: MediaQuery.of(context).size.height * 0.50,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: FaIcon(FontAwesomeIcons.arrowLeft, color: Colors.black, size: 22),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Text("Gramaj hesaplama", style: TextStyle(fontSize: 18, color: Colors.black)),
+                        ),
+                        const SizedBox(width: 48), // Geri butonu ile başlık arasındaki hizalamayı sağlamak için.
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        '20G', '30G', '40G', '50G'
+                      ].asMap().entries.map((entry) {
+                        int index = entry.key;
+                        String text = entry.value;
+                        return Expanded(
+                          child: Container(
+                            margin: EdgeInsets.symmetric(horizontal: 4.0),
+                            decoration: BoxDecoration(
+                              color: selectedButton == index + 1 ? Colors.blue : Colors.white,
+                              border: Border.all(color: Colors.black),
+                              borderRadius: BorderRadius.circular(5.0),
+                            ),
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: selectedButton == index + 1 ? Colors.blue : Colors.white,
+                                foregroundColor: Colors.black,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5.0),
+                                ),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  selectedButton = index + 1;
+                                  grams = (index + 2) * 10;
+                                });
+                              },
+                              child: Text(text),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 20),
+                    Expanded(
+                      child: Container(
+                        width: MediaQuery.of(context).size.width,
+                        decoration: BoxDecoration(
+                          color: HexColor("#f8fafc"),
+                          borderRadius: const BorderRadius.all(Radius.circular(5.0)),
+                        ),
+                        padding: const EdgeInsets.all(10.0),
+                        child: ListView.builder(
+                          itemCount: customBlend.length,
+                          itemBuilder: (context, index) {
+                            var blend = customBlend[index];
+                            double ratio = double.parse(blend['ratio']);
+                            double calculatedValue = calculateBlendAmount(ratio, grams);
+                            double progressValue = calculatedValue / 20.0;
+
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4.0),
+                              child: Row(
+                                children: [
+                                  Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(5.0),
+                                          color: Colors.grey[300], // Arka plan rengini progress barın arka planı olarak kabul edelim
+                                        ),
+                                        child: Align(
+                                          alignment: Alignment.bottomCenter,
+                                          child: FractionallySizedBox(
+                                            heightFactor: progressValue, // calculatedValue oranına göre progress bar yüksekliğini ayarla
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: HexColor("#1e293b"),
+                                                borderRadius: BorderRadius.circular(5.0),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Image.asset(
+                                        'images/nargile_images.png',
+                                        width: 40,
+                                        height: 40,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      '${blend['tobacco_name']}',
+                                      style: TextStyle(
+                                        color: HexColor("#1e293b"),
+                                        fontSize: 16,
+                                      ),
+                                      maxLines: null,
+                                      overflow: TextOverflow.visible,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    '(${calculatedValue.toStringAsFixed(1)} Gr)',
+                                    style: TextStyle(
+                                      color: HexColor("#1e293b"),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    maxLines: null,
+                                    overflow: TextOverflow.visible,
+                                    textAlign: TextAlign.right,
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+
+
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final ButtonStyle style = TextButton.styleFrom(
+      foregroundColor: Theme.of(context).colorScheme.onPrimary,);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: HexColor("#374151"),
@@ -107,6 +272,21 @@ class _SingleOrderDetailScreenState extends State<SingleOrderDetailScreen> {
           icon: FaIcon(FontAwesomeIcons.arrowLeft, color: HexColor("#f3f4f6")),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        actions: <Widget>[
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child:TextButton.icon(
+              onPressed: () {
+                orderDetailsFuture.then((orderDetails) {
+                  final customBlend = orderDetails['custom_blend'] ?? [];
+                  showBlendDetails(context, customBlend);
+                });
+              },
+              icon: const FaIcon(FontAwesomeIcons.arrowsRotate, color: Colors.white,size: 14,),
+              label: const Text('20 Gr',style: TextStyle(color: Colors.white),),
+            ),
+          ),
+        ],
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: orderDetailsFuture,
@@ -251,7 +431,7 @@ class _SingleOrderDetailScreenState extends State<SingleOrderDetailScreen> {
                               if (isMixtureTitleController)
                                 Row(
                                   children: [
-                                    FaIcon(FontAwesomeIcons.arrowRight, color: HexColor("#6b7280"),size: 10,),
+                                    FaIcon(FontAwesomeIcons.arrowRight, color: HexColor("#6b7280"), size: 10,),
                                     SizedBox(width: 8,),
                                     Text(
                                       '${tobaccoBlend['tobacco_name']} (${tobaccoBlend['brand_name']})',
@@ -269,37 +449,79 @@ class _SingleOrderDetailScreenState extends State<SingleOrderDetailScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     for (var blend in customBlend)
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              '${blend['tobacco_name']}',
-                                              style: TextStyle(
-                                                color: HexColor("#1e293b"),
-                                                fontSize: 16,
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                '${blend['tobacco_name']}',
+                                                style: TextStyle(
+                                                  color: HexColor("#1e293b"),
+                                                  fontSize: 16,
+                                                ),
+                                                maxLines: null,
+                                                overflow: TextOverflow.visible,
                                               ),
-                                              maxLines: null,
-                                              overflow: TextOverflow.visible,
                                             ),
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Expanded(
-                                            child: LinearProgressIndicator(
-                                              value: getProgressValue(blend['ratio']),
-                                              backgroundColor: Colors.grey[300],
-                                              color: HexColor("#1e293b"),
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              flex: 3,
+                                              child: Stack(
+                                                alignment: Alignment.center,
+                                                children: [
+                                                  LinearProgressIndicator(
+                                                    value: double.parse(blend['ratio']) / 100,
+                                                    backgroundColor: Colors.grey[300],
+                                                    color: HexColor("#1e293b"),
+                                                    minHeight: 8, // İstediğiniz yükseklik
+                                                  ),
+                                                  Text(
+                                                    '%${double.parse(blend['ratio']).toInt()}',
+                                                    style: TextStyle(
+                                                      color: Colors.white, // Metin rengi, progress bar ile kontrast oluşturmalı
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 8
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                          ),
-                                        ],
+
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              flex: 1,
+                                              child: Text(
+                                                    () {
+                                                  String ratio = blend['ratio'];
+                                                  double ratioValue = double.parse(ratio);
+                                                  double calculatedValue = 20 * (ratioValue / 100);
+                                                  return '(${calculatedValue.toStringAsFixed(1)} Gr)';
+                                                }(),
+                                                style: TextStyle(
+                                                  color: HexColor("#1e293b"),
+                                                  fontSize: 10,
+                                                ),
+                                                maxLines: null,
+                                                overflow: TextOverflow.visible,
+                                                textAlign: TextAlign.right,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                   ],
                                 ),
+
+
                             ],
                           ),
                         ),
                       ],
                     ),
                   ),
+
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -342,16 +564,35 @@ class _SingleOrderDetailScreenState extends State<SingleOrderDetailScreen> {
                                     children: [
                                       Row(
                                         children: [
-                                          FaIcon(FontAwesomeIcons.arrowRight, color: HexColor("#6b7280"),size: 10,),
+                                          FaIcon(FontAwesomeIcons.arrowRight, color: HexColor("#6b7280"), size: 10,),
                                           SizedBox(width: 8,),
-                                          Text('${extra['extra_name']} (${extra['extra_type_name']})', style: TextStyle(fontSize: 16)),
+                                          Text(
+                                                () {
+                                              String extraSparisMetni = "${extra['extra_name']} (${extra['extra_type_name']})";
+                                              if (extraSparisMetni != null && extraSparisMetni.length > 0) {
+                                                return extraSparisMetni;
+                                              } else {
+                                                return "Return";
+                                              }
+                                            }(),
+                                            style: TextStyle(fontSize: 16),
+                                          ),
                                         ],
                                       ),
                                       Divider(),
                                     ],
                                   ),
                                 )).toList(),
+                              ] else ...[
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    "Extra Olarak Spariş Girilmedi.",
+                                    style: TextStyle(fontSize: 16, color: HexColor("#6b7280")),
+                                  ),
+                                ),
                               ],
+
                             ],
                           ),
                         ),
@@ -394,9 +635,16 @@ class _SingleOrderDetailScreenState extends State<SingleOrderDetailScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${order['note']}',
+                                    () {
+                                  String ratio = order['note'];
+                                  if (ratio.isEmpty) {
+                                    return 'Muşteri Notu Bulunmuyor.';
+                                  } else {
+                                    return ratio.toString();
+                                  }
+                                }(),
                                 style: TextStyle(
-                                  color: HexColor("#1e293b"),
+                                  color: HexColor("#6b7280"),
                                   fontSize: 16,
                                 ),
                                 maxLines: null,
@@ -489,7 +737,7 @@ class _SingleOrderDetailScreenState extends State<SingleOrderDetailScreen> {
                                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                         children: [
                                           Padding(
-                                            padding: const EdgeInsets.only(left: 16,right: 16),
+                                            padding: const EdgeInsets.only(left: 16, right: 16),
                                             child: Container(
                                               width: double.infinity, // Ekranın yatayda %100'ünü kaplar
                                               child: ElevatedButton(
@@ -502,13 +750,13 @@ class _SingleOrderDetailScreenState extends State<SingleOrderDetailScreen> {
                                                     borderRadius: BorderRadius.zero, // Köşeleri düz yapmak için
                                                   ),
                                                 ),
-                                                child: const Text('İptal',style: TextStyle(color: Colors.white),),
+                                                child: const Text('İptal', style: TextStyle(color: Colors.white),),
                                               ),
                                             ),
                                           ),
 
                                           Padding(
-                                            padding: const EdgeInsets.only(left: 16,right: 16),
+                                            padding: const EdgeInsets.only(left: 16, right: 16),
                                             child: Container(
                                               width: double.infinity, // Ekranın yatayda %100'ünü kaplar
                                               child: ElevatedButton(
@@ -516,7 +764,7 @@ class _SingleOrderDetailScreenState extends State<SingleOrderDetailScreen> {
                                                   if (selectedStatus != null) {
                                                     updateOrderStatus(selectedStatus!);
                                                     Navigator.of(context).pop();
-                                                  }else{
+                                                  } else {
                                                     QuickAlert.show(
                                                       context: context,
                                                       type: QuickAlertType.info,
@@ -532,7 +780,7 @@ class _SingleOrderDetailScreenState extends State<SingleOrderDetailScreen> {
                                                     borderRadius: BorderRadius.zero, // Köşeleri düz yapmak için
                                                   ),
                                                 ),
-                                                child: const Text('Güncelle',style: TextStyle(color: Colors.white),),
+                                                child: const Text('Güncelle', style: TextStyle(color: Colors.white),),
                                               ),
                                             ),
                                           ),

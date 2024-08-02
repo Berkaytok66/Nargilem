@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class NotificationService {
   late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
@@ -21,7 +22,17 @@ class NotificationService {
     flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
+  // Bildirim izni istemek için bu fonksiyonu ekliyoruz
+  Future<void> _requestNotificationPermission() async {
+    final status = await Permission.notification.status;
+    if (!status.isGranted) {
+      await Permission.notification.request();
+    }
+  }
+
+  // Bildirim göstermeden önce izin kontrolü yapıyoruz
   Future<void> showNotification(String title, String body) async {
+    await _requestNotificationPermission(); // İzin kontrolü ve isteme işlemi
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
     AndroidNotificationDetails(
       channelId,

@@ -57,7 +57,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Hoqala Cafe',
+                      'En Class',
                       style: TextStyle(
                         color: HexColor("#f3f4f6"),
                         fontSize: 20,

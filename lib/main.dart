@@ -3,10 +3,9 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:nargilem/AppLocalizations/AppLocalizations.dart';
 import 'package:nargilem/Global/PusherClient.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-
 import 'package:nargilem/Login/Login.dart';
+import 'package:nargilem/navBarPage/NavBar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,18 +20,30 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  bool _isLoading = true; // Ekranın yüklendiğini göstermek için
+  bool _isLoggedIn = false; // Kullanıcının giriş yapıp yapmadığını tutmak için
 
   @override
   void initState() {
     super.initState();
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+    setState(() {
+      _isLoggedIn = token != null;
+      _isLoading = false;
+    });
   }
 
   @override
-  void dispose() {
-    super.dispose();
-  }
-  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator()); // Yükleniyor göstergesi
+    }
+
     return MaterialApp(
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -50,7 +61,7 @@ class _MyAppState extends State<MyApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const LoginScreen(),
+      home: _isLoggedIn ? const NavBar() : const LoginScreen(),
     );
   }
 }

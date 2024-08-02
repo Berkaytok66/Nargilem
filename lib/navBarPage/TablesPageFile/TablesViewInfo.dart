@@ -7,6 +7,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:nargilem/AppLocalizations/AppLocalizations.dart';
 import 'package:nargilem/Global/SabitDegiskenler.dart';
 import 'package:nargilem/navBarPage/TablesPageFile/TableClass/OrderDetailsScreen.dart';
+import 'package:nargilem/navBarPage/TablesPageFile/TablesPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -30,7 +31,14 @@ class TablesViewInfo extends StatelessWidget {
       final data = jsonDecode(response.body);
       if (data['result_type'] == 'success') {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(data['message'])));
-        Navigator.pop(context);
+     //   Navigator.pop(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                TablesPage(),
+          ),
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${AppLocalizations.of(context).translate("TablesViewInfo.Error")}: ${data['message']}')));
       }
@@ -274,7 +282,7 @@ class TablesViewInfo extends StatelessWidget {
                 InkWell(
                   onTap: (){
                     closeSession(context);
-                  },//Alıcıya sor buttonu sms ekranına yönlendir.
+                  },
                   child: Container(
                     width: MediaQuery.of(context).size.width/1.09,
 

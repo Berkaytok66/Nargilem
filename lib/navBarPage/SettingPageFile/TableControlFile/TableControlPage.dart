@@ -61,10 +61,10 @@ class _TableControlPageState extends State<TableControlPage> with SingleTickerPr
     if (tableNumber.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Masa numarası boş olamaz"),
+          content: const Text("Masa numarası boş olamaz"),
           backgroundColor: HexColor("#ef4444"),
           behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(bottom: 50), // Snackbar'ın görünürlüğünü artırmak için güncellendi
+          margin: const EdgeInsets.only(bottom: 50), // Snackbar'ın görünürlüğünü artırmak için güncellendi
         ),
       );
       return;
@@ -89,7 +89,7 @@ class _TableControlPageState extends State<TableControlPage> with SingleTickerPr
         SnackBar(
           content: Text(e.toString()),
           behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(bottom: 50), // Snackbar'ın görünürlüğünü artırmak için güncellendi
+          margin: const EdgeInsets.only(bottom: 50), // Snackbar'ın görünürlüğünü artırmak için güncellendi
         ),
       );
     }
@@ -120,36 +120,21 @@ class _TableControlPageState extends State<TableControlPage> with SingleTickerPr
     }
   }
 
-  Future<void> _showTableDetails(int id) async {
-    try {
-      RestaurantTable tableDetails = await tableService.fetchTableDetails(id);
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Masa Detayları'),
-            content: Text('Masa Numarası: ${tableDetails.tableNumber}\nDurum: ${tableDetails.status}'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('Kapat'),
-              ),
-            ],
-          );
-        },
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(bottom: 50),
-        ),
-      );
-    }
-  }
+  //Future<void> _showTableDetails(int id) async {
+  //  try {
+  //    RestaurantTable tableDetails = await tableService.fetchTableDetails(id);
+  //
+//
+  //  } catch (e) {
+  //    ScaffoldMessenger.of(context).showSnackBar(
+  //      SnackBar(
+  //        content: Text(e.toString()),
+  //        behavior: SnackBarBehavior.floating,
+  //        margin: EdgeInsets.only(bottom: 50),
+  //      ),
+  //    );
+  //  }
+  //}
 
   @override
   Widget build(BuildContext context) {
@@ -191,7 +176,7 @@ class _TableControlPageState extends State<TableControlPage> with SingleTickerPr
                   return GestureDetector(
                     onTap: () {
                       showModalBottomSheet(
-                        backgroundColor: HexColor("#a3a3a3"),
+                        backgroundColor: HexColor("#f5f5f5"),
                         context: context,
                         isScrollControlled: true,
                         shape: RoundedRectangleBorder(
@@ -204,24 +189,72 @@ class _TableControlPageState extends State<TableControlPage> with SingleTickerPr
                             ),
                             child: Container(
                               padding: EdgeInsets.all(16.0),
-                              height: MediaQuery.of(context).size.height * 0.25,
+                              height: MediaQuery.of(context).size.height * 0.50,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                      _showTableDetails(table.id);
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      foregroundColor: HexColor("#f1f5f9"),
-                                      backgroundColor: HexColor("#16a34a"), // Metin rengi
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8.0),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Column(
+                                          children: [
+                                            const Row(
+                                              children: <Widget>[
+                                                Expanded(
+                                                  child: Divider(
+                                                    color: Colors.black,
+                                                    thickness: 1,
+                                                  ),
+                                                ),
+                                                Padding(
+                                                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                                                  child: Text("Masa Detayları", style: TextStyle(fontSize: 18,color:Colors.black ),),
+                                                ),
+                                                Expanded(
+                                                  child: Divider(
+                                                    color: Colors.black,
+                                                    thickness: 1,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 20),
+                                            Container(
+                                              width: MediaQuery.of(context).size.width, // Yatayda sabit genişlik
+                                              decoration: BoxDecoration(
+                                                color: HexColor("#d6d3d1"),
+                                                borderRadius: const BorderRadius.all(Radius.circular(5.0)),
+                                              ),
+                                              padding: const EdgeInsets.all(10.0), // Metni daha iyi göstermek için padding
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text("${table.tableNumber.replaceAll('Table', 'Masa')}"  )
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                    child: const Text("Görüntüle"),
+                                    ],
                                   ),
+                                 //ElevatedButton(
+                                 //  onPressed: () {
+                                 //    Navigator.of(context).pop();
+                                 //    _showTableDetails(table.id);
+                                 //  },
+                                 //  style: ElevatedButton.styleFrom(
+                                 //    foregroundColor: HexColor("#f1f5f9"),
+                                 //    backgroundColor: HexColor("#16a34a"), // Metin rengi
+                                 //    shape: RoundedRectangleBorder(
+                                 //      borderRadius: BorderRadius.circular(8.0),
+                                 //    ),
+                                 //  ),
+                                 //  child: const Text("Görüntüle"),
+                                 //),
+                                  SizedBox(height: MediaQuery.of(context).size.height * 0.15,),
                                   ElevatedButton(
                                     onPressed: () {
                                       Navigator.of(context).pop();
@@ -241,7 +274,7 @@ class _TableControlPageState extends State<TableControlPage> with SingleTickerPr
                                       Navigator.of(context).pop();
                                     },
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: HexColor("#b45309"), // Arka plan rengi
+                                      backgroundColor: HexColor("#65a30d"), // Arka plan rengi
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(5), // Dikdörtgen yapmak için
                                       ),
@@ -300,7 +333,7 @@ class _TableControlPageState extends State<TableControlPage> with SingleTickerPr
         foregroundColor: HexColor("#1f2937"),
         onPressed: () {
           showModalBottomSheet(
-            backgroundColor: HexColor("#a3a3a3"),
+            backgroundColor: HexColor("#f5f5f5"),
             context: context,
             isScrollControlled: true,
             shape: RoundedRectangleBorder(
@@ -339,7 +372,7 @@ class _TableControlPageState extends State<TableControlPage> with SingleTickerPr
                       SizedBox(height: 16.0),
                       ElevatedButton(
                         onPressed: (){
-                          _addTable;
+                          _addTable();
                           Navigator.of(context).pop();
                         },
                         child: Text("Masa Ekle"),
@@ -372,6 +405,7 @@ class _TableControlPageState extends State<TableControlPage> with SingleTickerPr
         },
         label: const Text('Masa Ekle'),
         icon: const Icon(CupertinoIcons.add_circled_solid),
+        backgroundColor: HexColor("#e5e5e5"),
       ),
     );
   }

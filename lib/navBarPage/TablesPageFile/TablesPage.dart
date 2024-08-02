@@ -4,8 +4,10 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:http/http.dart' as http;
 import 'package:nargilem/AppLocalizations/AppLocalizations.dart';
 import 'package:nargilem/Global/PusherClient.dart';
+import 'package:nargilem/Global/RestaurantTableClass.dart';
 import 'dart:convert';
 import 'package:nargilem/Global/SabitDegiskenler.dart';
+import 'package:nargilem/navBarPage/TablesPageFile/TablesPage.dart';
 import 'package:nargilem/navBarPage/TablesPageFile/TablesViewInfo.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -234,22 +236,3 @@ class _TablesPageState extends State<TablesPage> with SingleTickerProviderStateM
   }
 }
 
-class RestaurantTableClass {
-  final String uuid;
-  final String tableNumber;
-  final int isBusy;
-
-  RestaurantTableClass({
-    required this.uuid,
-    required this.tableNumber,
-    required this.isBusy,
-  });
-
-  factory RestaurantTableClass.fromJson(Map<String, dynamic> json) {
-    return RestaurantTableClass(
-      uuid: json['uuid'],
-      tableNumber: json['table_number'],
-      isBusy: json['is_busy'],
-    );
-  }
-}

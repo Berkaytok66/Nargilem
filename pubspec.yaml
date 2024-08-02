@@ -54,6 +54,13 @@ dependencies:
   pusher_client:
     path: ./local_pusher_client
   flutter_localization: ^0.2.0
+  permission_handler: ^11.3.1
+  flutter_launcher_icons: ^0.13.1
+
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "images/ic_launcher.png"
 
 dev_dependencies:
   flutter_test:
@@ -82,7 +89,9 @@ flutter:
      - images/login.riv
      - images/home_dome_image.png
      - images/hoqala_icon.png
+     - images/ic_launcher.png
      - images/table_view_info_image.png
+     - images/nargile_images.png
      - images/settings/stock_management.png
      - images/settings/table_management.png
      - images/settings/settings.png

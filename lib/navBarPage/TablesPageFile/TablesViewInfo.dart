@@ -32,7 +32,7 @@ class TablesViewInfo extends StatelessWidget {
       if (data['result_type'] == 'success') {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(data['message'])));
      //   Navigator.pop(context);
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) =>

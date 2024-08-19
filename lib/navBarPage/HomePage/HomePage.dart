@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:intl/intl.dart';
 import 'package:nargilem/AppLocalizations/AppLocalizations.dart';
 import 'package:nargilem/Global/PusherClient.dart';
 import 'package:nargilem/Global/SabitDegiskenler.dart';
@@ -55,33 +56,37 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       return;
     }
 
-    pusherClientManager.initialize(token, (eventData) {
-      // Gelen veriyi parse ediyoruz
-      try {
-        final parsedData = jsonDecode(eventData);
+    // PusherClientManager'ı sadece ilk başlatmada initialize ediyoruz
+    if (!pusherClientManager.isInitialized) {
+      pusherClientManager.initialize(token, (eventData) {
+        // Gelen veriyi parse ediyoruz
+        try {
+          final parsedData = jsonDecode(eventData);
 
-        // Parse edilmiş veriyi loga yazıyoruz
-        print("Parsed Data: $parsedData");
+          // Parse edilmiş veriyi loga yazıyoruz
+          print("Parsed Data: $parsedData");
 
-        // "order_status" anahtarını kontrol ediyoruz
-        if (parsedData.containsKey('data') && parsedData['data'].containsKey('order_status')) {
-          if (parsedData['data']['order_status'] < 5) {
-
-            if (mounted) {
-              setState(() {
-                _fetchOrders(_selectedStatus); // Sipariş listesini güncelle
-              });
+          // "order_status" anahtarını kontrol ediyoruz
+          if (parsedData.containsKey('data') && parsedData['data'].containsKey('order_status')) {
+            if (parsedData['data']['order_status'] < 5) {
+              if (mounted) {
+                setState(() {
+                  _fetchOrders(_selectedStatus); // Sipariş listesini güncelle
+                });
+              }
             }
           }
+        } catch (e) {
+          // JSON parse hatası varsa hata mesajı
+          print("JSON parse hatası: $e");
         }
-      } catch (e) {
-        // JSON parse hatası varsa hata mesajı
-        print("JSON parse hatası: $e");
-      }
-    });
-
-
+      });
+    } else {
+      // PusherClient zaten başlatılmışsa, sadece mevcut bağlantıyı kullanıyoruz
+      pusherClientManager.connect();
+    }
   }
+
 
   @override
   void dispose() {
@@ -137,7 +142,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   void wasDeliveredOrder(int orderId) {
     _updateOrderStatus(orderId, "3"); // Teslim Edildi
   }
-
+  String _formatTime(String dateTime) {
+    // Datetime stringini parse ediyoruz
+    DateTime parsedDateTime = DateTime.parse(dateTime);
+    // Saat ve dakikayı almak için DateFormat kullanıyoruz
+    DateFormat formatter = DateFormat('HH:mm');
+    return formatter.format(parsedDateTime);
+  }
   @override
   Widget build(BuildContext context) {
     var screenSize = MediaQuery.of(context).size;
@@ -148,8 +159,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
         title: Text(AppLocalizations.of(context).translate("HomePage.Orders"),style: TextStyle(color: HexColor("#f3f4f6")),),
       ),
-      body: _personalController
-          ? Column(
+      body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(1.0),
@@ -180,8 +190,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 padding: const EdgeInsets.all(5.0),
                 child: Column(
                   children: _orders.map((order) {
-                    bool isExpanded =
-                        _expandedOrderId == order['id'];
+                    bool isExpanded = _expandedOrderId == order['id'];
+                    String formattedTime = _formatTime(order['created_at']);
                     final orderStatus = _statusOptions.firstWhere(
                           (status) =>
                       status['value'] == order['status'],
@@ -263,7 +273,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                               width: 7,
                                             ),
                                             Text(
-                                              "${order['created_at']}",
+                                              "${formattedTime}",
                                               style: TextStyle(
                                                   fontSize: 16,
                                                   color: HexColor(
@@ -519,13 +529,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ),
         ],
       )
-          : Center(
-            child: Text(
-             AppLocalizations.of(context).translate(
-                "HomePage.You_do_not_have_access_authorization"),
-             style: const TextStyle(fontSize: 20),
-        ),
-      ),
     );
   }
 }

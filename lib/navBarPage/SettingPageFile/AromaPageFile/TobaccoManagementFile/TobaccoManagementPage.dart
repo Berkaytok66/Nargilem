@@ -3,9 +3,11 @@ import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:nargilem/Global/SabitDegiskenler.dart';
 import 'package:nargilem/Global/ToastHelper.dart';
+import 'package:nargilem/navBarPage/SettingPageFile/AromaPageFile/AromaHomePage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -215,11 +217,7 @@ class _TobaccoManagementPageState extends State<TobaccoManagementPage> with Sing
         setState(() {
           tobaccoFlavours[id] = responseData['data'];
         });
-        ToastHelper.showToast(
-          message: "Başarılı",
-          backgroundColor: Colors.green,
-          gravity: ToastGravity.TOP,
-        );
+
       } else {
         ToastHelper.showToast(
           message: "Hata: ${responseData['message']}",
@@ -378,6 +376,18 @@ class _TobaccoManagementPageState extends State<TobaccoManagementPage> with Sing
               : Colors.white,
         ),
         title: const Text("Tütün Yönetimi", style: TextStyle(color: Colors.white)),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            // İkona tıklandığında yapılacak işlemler
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AromaHomePage(),
+              ),
+            );
+          },
+        ),
       ),
       body: Column(
         children: [
@@ -416,7 +426,7 @@ class _TobaccoManagementPageState extends State<TobaccoManagementPage> with Sing
                             }
                           },
                         ),
-                        hintText: 'Örn. Yaban Mersini',
+                        hintText: 'Örn. Limon Buz',
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.text,
@@ -593,7 +603,7 @@ class _TobaccoManagementPageState extends State<TobaccoManagementPage> with Sing
                                                 },
                                               );
                                             },
-                                            icon: Icon(Icons.update),
+                                            icon:  FaIcon(FontAwesomeIcons.edit, size: 18, color: Colors.white),
                                           ),
                                         ],
                                       ),
@@ -753,7 +763,7 @@ class _TobaccoManagementPageState extends State<TobaccoManagementPage> with Sing
                                                                 _toggleExpansion(index);
                                                               });
                                                             },
-                                                            icon: Icon(CupertinoIcons.add),
+                                                            icon:  FaIcon(FontAwesomeIcons.add, size: 18, color: Colors.white),
                                                           ),
                                                         ],
                                                       ),

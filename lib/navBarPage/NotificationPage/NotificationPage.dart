@@ -40,32 +40,78 @@ class _NotiPageState extends State<NotiPage> with SingleTickerProviderStateMixin
       print("Token bulunamadı");
       return;
     }
-    pusherClientManager.initialize(token, (eventData) {
-      // Gelen veriyi parse ediyoruz
-      try {
-        final parsedData = jsonDecode(eventData);
-        // Parse edilmiş veriyi loga yazıyoruz
-        print("Parsed Data: $parsedData");
-        if (parsedData["status"] == 200) {
-          _loadNotifications(); // Bildirimleri tekrar yükleyin ve güncelleyin
+    if (!pusherClientManager.isInitialized) {
+      pusherClientManager.initialize(token, (eventData) {
+        try {
+          final parsedData = jsonDecode(eventData);
+
+          // Önce parsedData'nın tipini kontrol edin
+          if (parsedData is Map<String, dynamic>) {
+            // Eğer parsedData bir Map ise burada işleyin
+            if (parsedData.containsKey("data")) {
+              final data = parsedData["data"];
+
+              // data'nın tipini kontrol edelim
+              if (data is List) {
+                for (var item in data) {
+                  if (item is Map<String, dynamic>) {
+                    // item bir Map olduğunda containsKey çağrılabilir
+                    if (item.containsKey("order_status")) {
+                      // "order_status" anahtarını işleyin
+                      if (item["order_status"] < 5) {
+                        setState(() {
+                          isLoading = true;
+                        });
+                        _loadNotifications(); // Bildirimleri tekrar yükleyin ve güncelleyin
+                      }
+                    } else {
+                      print("Status: ${item["status"]}");
+                    }
+                  } else {
+                    print("List içindeki öğe beklenmedik bir türde: ${item.runtimeType}");
+                  }
+                }
+              } else {
+                print("Data beklenmedik bir türde: ${data.runtimeType}");
+              }
+            } else {
+              print("Status: ${parsedData["status"]}");
+            }
+          } else {
+            print("Beklenmedik veri tipi: ${parsedData.runtimeType}");
+          }
+        } catch (e) {
+          print("JSON parse hatası: $e");
         }
-      } catch (e) {
-        // JSON parse hatası varsa hata mesajı
-        print("JSON parse hatası: $e");
-      }
-    });
+      });
+
+
+
+
+
+
+    }else{
+      // PusherClient zaten başlatılmışsa, sadece mevcut bağlantıyı kullanıyoruz
+      pusherClientManager.connect();
+    }
+
   }
 
   Future<void> _loadNotifications() async {
-    List<NotificationModel> notifications = await NotificationHelper.getNotifications();
+
+    List<NotificationModel> newNotifications = await NotificationHelper.getNotifications();
     if (mounted) {
       setState(() {
-        this.notifications = notifications;
-        this.originalIndices = List<int>.generate(notifications.length, (i) => i).reversed.toList();
+        // Yeni bildirimleri mevcut listeye ekleyin
+        this.notifications = newNotifications; // Listeyi yeni bildirimlerle güncelleyiyoruz
+        this.originalIndices = List<int>.generate(this.notifications.length, (i) => i).reversed.toList();
         isLoading = false; // Yükleme tamamlandı
+
+        print("Notifications length: ${notifications.length}");
       });
     }
   }
+
 
   Future<void> _markAsRead(int index) async {
     int originalIndex = originalIndices[index];
@@ -88,10 +134,11 @@ class _NotiPageState extends State<NotiPage> with SingleTickerProviderStateMixin
     final String formattedTime = "${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}";
     return "$formattedDate\n$formattedTime";
   }
-  Future<void> sendNotification({String? tableUuid}) async {
+
+  Future<void> sendNotification({String? tableUuid,String? urlApi}) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
-    final url = Uri.parse('${SabitD.URL}/api/terminal/personal/other/deal-ember');
+    final url = Uri.parse('${SabitD.URL}/$urlApi');
     final body = tableUuid != null ? {'table_uuid': tableUuid} : {'table_uuid': null};
 
     final response = await http.post(
@@ -111,7 +158,7 @@ class _NotiPageState extends State<NotiPage> with SingleTickerProviderStateMixin
       print('Bildirim gönderilemedi. Hata: ${response.body}');
     }
   }
-  void showBlendDetails(BuildContext context,String tableName,String uuid) {
+  void showBlendDetails(BuildContext context,String tableName,String uuid,String text,String titleText,String url) {
     showModalBottomSheet(
       backgroundColor: HexColor("#f5f5f5"),
       context: context,
@@ -141,9 +188,9 @@ class _NotiPageState extends State<NotiPage> with SingleTickerProviderStateMixin
                             Navigator.of(context).pop();
                           },
                         ),
-                        const Padding(
+                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Text("Köz isteği", style: TextStyle(fontSize: 18, color: Colors.black)),
+                          child: Text(titleText, style: TextStyle(fontSize: 18, color: Colors.black)),
                         ),
                         const SizedBox(width: 48), // Geri butonu ile başlık arasındaki hizalamayı sağlamak için.
                       ],
@@ -157,12 +204,12 @@ class _NotiPageState extends State<NotiPage> with SingleTickerProviderStateMixin
                           borderRadius: const BorderRadius.all(Radius.circular(5.0)),
                         ),
                         padding: const EdgeInsets.all(10.0),
-                        child: const Column(
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Açıklama Metni
                             Text(
-                              "Müşteriye közlerin hazırlandığı ve yola çıktığı hakkında bilgi vermek ister misiniz? Bildirimleri tüm masalara aynı anda gönderebilir veya sadece ilgili masaya özel bildirim yapabilirsiniz. Tercihinize göre, müşterilerinizi bilgilendirmek için en uygun yöntemi seçebilirsiniz.",
+                              text,
                               style: TextStyle(fontSize: 14, color: Colors.black),
                             ),
                             SizedBox(height: 20),
@@ -176,7 +223,7 @@ class _NotiPageState extends State<NotiPage> with SingleTickerProviderStateMixin
                     ElevatedButton(
                       onPressed: () {
                         // Buton tıklandığında yapılacak işlemler
-                        sendNotification(tableUuid: uuid);
+                        sendNotification(tableUuid: uuid,urlApi: url);
                         Navigator.of(context).pop();
                       },
                       child: Text("($tableName) Sadece Bu masaya Bildir",style: TextStyle(color: Colors.white),),
@@ -192,7 +239,7 @@ class _NotiPageState extends State<NotiPage> with SingleTickerProviderStateMixin
                     ElevatedButton(
                       onPressed: () {
                         // Buton tıklandığında yapılacak işlemler
-                        sendNotification();
+                        sendNotification(urlApi: url);
                         Navigator.of(context).pop();
                       },
                       child: Text("Tüm Masalara Bildir",style: TextStyle(color: Colors.white)),
@@ -221,7 +268,7 @@ class _NotiPageState extends State<NotiPage> with SingleTickerProviderStateMixin
         backgroundColor: HexColor("#374151"),
         automaticallyImplyLeading: false,
         title: Text(
-          "Bildirimler",
+          "Bildirim Geçmişi",
           style: TextStyle(color: HexColor("#f3f4f6")),
         ),
       ),
@@ -236,10 +283,19 @@ class _NotiPageState extends State<NotiPage> with SingleTickerProviderStateMixin
               InkWell(
                 onTap: () => {
                   _markAsRead(index),
-
-                  if (notification.body.length == 32){
-
-                    showBlendDetails(context,notification.title,notification.uuid)
+                  print("----------------------${notification.body.length}"),
+                  if (notification.body.length == 31) {
+                    showBlendDetails(context, notification.title, notification.uuid,
+                    "Müşteriye közlerin hazırlandığı ve yola çıktığı hakkında bilgi vermek ister misiniz? Bildirimleri tüm masalara aynı anda gönderebilir veya sadece ilgili masaya özel bildirim yapabilirsiniz. Tercihinize göre, müşterilerinizi bilgilendirmek için en uygun yöntemi seçebilirsiniz.",
+                     "Köz isteği",
+                      "api/terminal/personal/other/deal-ember"
+                    )
+                  }else if (notification.body.length == 25){
+                    showBlendDetails(context, notification.title, notification.uuid,
+                        "Müşteriye masaya en kısa sürede geleceğinizi bildirin.",
+                        "Personel İsteği",
+                        "api/terminal/personal/other/employee-coming"
+                    )
                   }
                 },
                 child: Container(
@@ -281,4 +337,5 @@ class _NotiPageState extends State<NotiPage> with SingleTickerProviderStateMixin
       ),
     );
   }
+
 }

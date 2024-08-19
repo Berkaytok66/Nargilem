@@ -29,7 +29,7 @@ class _TablesPageState extends State<TablesPage> with SingleTickerProviderStateM
     super.initState();
     _controller = AnimationController(vsync: this);
     fetchTables();
-    _TokenClientManage();
+    //_TokenClientManage();
   }
 
   Future<void> _TokenClientManage() async {
@@ -132,6 +132,8 @@ class _TablesPageState extends State<TablesPage> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;// Örneğin, 600 pikselden geniş ekranlar tablet olarak kabul edilir
     return Scaffold(
       appBar: AppBar(
         backgroundColor: HexColor("#374151"),
@@ -161,8 +163,8 @@ class _TablesPageState extends State<TablesPage> with SingleTickerProviderStateM
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount:3, // Her satırda kaç masa olacağı
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount:isTablet ? 7 : 3, // Tablet ise 5, değilse 2
                   crossAxisSpacing: 8.0,
                   mainAxisSpacing: 8.0,
                 ),

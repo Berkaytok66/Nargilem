@@ -57,7 +57,7 @@ class _TableControlPageState extends State<TableControlPage> with SingleTickerPr
   }
 
   Future<void> _addTable() async {
-    String tableNumber = "Table ${_controllerTableNumber.text}";
+    String tableNumber = "${_controllerTableNumber.text}";
     if (tableNumber.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -138,6 +138,8 @@ class _TableControlPageState extends State<TableControlPage> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;// Örneğin, 600 pikselden geniş ekranlar tablet olarak kabul edilir
     return Scaffold(
       appBar: AppBar(
         backgroundColor: HexColor("#374151"),
@@ -165,8 +167,8 @@ class _TableControlPageState extends State<TableControlPage> with SingleTickerPr
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4, // Her satırda kaç masa olacağı
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount:isTablet ? 8 : 2, // Tablet ise 5, değilse 2
                   crossAxisSpacing: 8.0,
                   mainAxisSpacing: 8.0,
                 ),

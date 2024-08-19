@@ -1,12 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:nargilem/navBarPage/SettingPageFile/AromaPageFile/MixBrandPageFile/TobaccoBlendsPage.dart';
 import 'package:nargilem/navBarPage/SettingPageFile/AromaPageFile/TobaccoManagementFile/AromaPage.dart';
 import 'package:nargilem/navBarPage/SettingPageFile/AromaPageFile/TobaccoManagementFile/AromaPageType.dart';
 import 'package:nargilem/navBarPage/SettingPageFile/AromaPageFile/TobaccoManagementFile/TobaccoManagementPage.dart';
 import 'package:nargilem/navBarPage/SettingPageFile/AromaPageFile/MixBrandPageFile/MixBrandPage.dart';
-
+import 'package:nargilem/navBarPage/SettingPageFile/SettingsPage.dart';
 
 class AromaHomePage extends StatefulWidget {
   const AromaHomePage({super.key});
@@ -32,16 +33,33 @@ class _AromaHomePageState extends State<AromaHomePage> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600; // Örneğin, 600 pikselden geniş ekranlar tablet olarak kabul edilir
     return Scaffold(
       appBar: AppBar(
         backgroundColor: HexColor("#374151"),
-     //  automaticallyImplyLeading: false,
+        //  automaticallyImplyLeading: false,
         iconTheme: IconThemeData(
           color: Theme.of(context).brightness == Brightness.dark
               ? Colors.black
               : Colors.white,
         ),
-        title: Text('Stok Yönetimi',style: TextStyle(color: HexColor("#f3f4f6")),),
+        title: Text(
+          'Stok Yönetimi',
+          style: TextStyle(color: HexColor("#f3f4f6")),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            // İkona tıklandığında yapılacak işlemler
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SettingsPage(),
+              ),
+            );
+          },
+        ),
       ),
       body: Column(
         children: [
@@ -53,7 +71,6 @@ class _AromaHomePageState extends State<AromaHomePage> with SingleTickerProvider
                 bottomRight: Radius.circular(-30.0),
               ),
             ),
-
             padding: EdgeInsets.all(16.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -77,7 +94,6 @@ class _AromaHomePageState extends State<AromaHomePage> with SingleTickerProvider
                     ),
                   ],
                 ),
-              
               ],
             ),
           ),
@@ -85,8 +101,8 @@ class _AromaHomePageState extends State<AromaHomePage> with SingleTickerProvider
             child: Padding(
               padding: const EdgeInsets.all(10.0),
               child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, // Her satırda iki kart olacak
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: isTablet ? 5 : 2, // Tablet ise 5, değilse 2
                   crossAxisSpacing: 5.0,
                   mainAxisSpacing: 5.0,
                 ),
@@ -101,27 +117,37 @@ class _AromaHomePageState extends State<AromaHomePage> with SingleTickerProvider
                     child: InkWell(
                       onTap: () {
                         switch (index) {
-                          case 0:{
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => AromaPageType()));
-                          }
-                          case 1:{
-                            Navigator.push(context, MaterialPageRoute(builder: (context)=> AromaPage()));
-                          }
-                          case 2:{
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => TobaccoManagementPage()));
-                          }
-                          case 3:{
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => MixBrandPage()));
-                          }
-                          case 4:{
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => TobaccoBlendsPage()));
-                          }
+                          case 0:
+                            {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => AromaPageType()));
+                              break;
+                            }
+                          case 1:
+                            {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => AromaPage()));
+                              break;
+                            }
+                          case 2:
+                            {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => TobaccoManagementPage()));
+                              break;
+                            }
+                          case 3:
+                            {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => MixBrandPage()));
+                              break;
+                            }
+                          case 4:
+                            {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => TobaccoBlendsPage()));
+                              break;
+                            }
                         }
                       },
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
+                          FaIcon(
                             _getIconForIndex(index),
                             size: 50,
                             color: _getColorForIndex(index),
@@ -130,9 +156,9 @@ class _AromaHomePageState extends State<AromaHomePage> with SingleTickerProvider
                           Text(
                             _getTextForIndex(index),
                             style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: HexColor("#f3f4f6")
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: HexColor("#f3f4f6"),
                             ),
                           ),
                         ],
@@ -151,17 +177,17 @@ class _AromaHomePageState extends State<AromaHomePage> with SingleTickerProvider
   IconData _getIconForIndex(int index) {
     switch (index) {
       case 0:
-        return CupertinoIcons.arrow_3_trianglepath;
+        return FontAwesomeIcons.appleWhole;
       case 1:
-        return CupertinoIcons.arrow_swap;
+        return FontAwesomeIcons.hurricane;
       case 2:
-        return CupertinoIcons.ant;
+        return FontAwesomeIcons.leaf;
       case 3:
-        return CupertinoIcons.alt;
+        return FontAwesomeIcons.thList;
       case 4:
-        return CupertinoIcons.app_badge;
+        return FontAwesomeIcons.blender;
       default:
-        return CupertinoIcons.question_circle;
+        return FontAwesomeIcons.question;
     }
   }
 
@@ -185,13 +211,13 @@ class _AromaHomePageState extends State<AromaHomePage> with SingleTickerProvider
   String _getTextForIndex(int index) {
     switch (index) {
       case 0:
-        return 'Aroma Type';
+        return 'Aroma Tipi';
       case 1:
         return 'Aroma Yönetici';
       case 2:
         return 'Tütün Yönetici';
       case 3:
-        return 'Karışm Markası';
+        return 'Markalar';
       case 4:
         return 'Tütün Karışımları';
       default:

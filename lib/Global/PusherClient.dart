@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:nargilem/navBarPage/NotificationPage/NotificationHelper.dart';
 import 'package:nargilem/navBarPage/NotificationPage/NotificationModel.dart';
@@ -12,6 +13,12 @@ class PusherClientManager {
   late String token;
   late Function(dynamic) onEventReceived;
   late NotificationService notificationService;
+  String currentState = '';
+  bool isInitialized = false;
+  bool isSubscribed = false;
+  int retryCount = 0;
+  final int maxRetries = 5;
+  Timer? reconnectTimer;
 
   factory PusherClientManager() {
     return _instance;
@@ -22,6 +29,11 @@ class PusherClientManager {
   }
 
   void initialize(String token, Function(dynamic) onEventReceived) {
+    if (isInitialized) {
+      print("PusherClientManager zaten başlatıldı");
+      return;
+    }
+
     this.token = token;
     this.onEventReceived = onEventReceived;
 
@@ -41,31 +53,63 @@ class PusherClientManager {
     pusher = PusherClient(
       '9kib2q85k1wxjfk7ersb',
       options,
-      autoConnect: false,
+      autoConnect: true,
     );
 
     pusher.onConnectionStateChange((state) {
-      print("previousState: ${state!.previousState}, currentState: ${state.currentState}");
-      if (state.currentState == 'CONNECTED') {
+      print("previousState: ${state?.previousState}, currentState: ${state?.currentState}");
+
+      currentState = state?.currentState ?? '';
+
+      if (currentState == 'CONNECTED' && !isSubscribed) {
         _subscribeToChannel();
+        retryCount = 0;
+      } else if (currentState == 'DISCONNECTED' || currentState == 'RECONNECTING') {
+        _retryConnection();
       }
     });
 
     pusher.onConnectionError((error) {
-      print("error: ${error!.message}");
-      pusher.connect();
-
+      print("error: ${error?.message}");
+      Future.delayed(Duration(seconds: 5), () {
+        _retryConnection();
+      });
     });
 
     pusher.connect();
+    isInitialized = true;
+  }
+
+  void connect() {
+    if (!isInitialized) {
+      print("PusherClientManager initialize edilmedi.");
+      return;
+    }
+    pusher.connect();
+  }
+
+  void disconnect() {
+    if (channel != null) {
+      pusher.unsubscribe(channel!.name);
+      channel = null;
+    }
+    pusher.disconnect();
+    isInitialized = false;
+    isSubscribed = false;
   }
 
   void _retryConnection() {
     print("Retrying connection...");
-    Future.delayed(Duration(seconds: 5), () {
-      if (pusher.connect() != 'CONNECTED') {
-        pusher.connect();
-      }
+
+    if (currentState == 'CONNECTING' || currentState == 'RECONNECTING' || retryCount >= maxRetries) {
+      print("Bağlanma denemeleri sınırına ulaşıldı veya bağlantı zaten kuruluyor.");
+      return;
+    }
+
+    retryCount++;
+    reconnectTimer?.cancel();
+    reconnectTimer = Timer(Duration(seconds: 5), () {
+      pusher.connect();
     });
   }
 
@@ -77,11 +121,12 @@ class PusherClientManager {
 
     try {
       channel = pusher.subscribe('private-terminal-channel');
+      isSubscribed = true;
+
       channel?.bind('App\\Events\\TerminalEvent', (dynamic event) async {
         print("Event received: ${event.data}");
-        onEventReceived(event.data); // Mesajı ilgili widget'a ilet
+        onEventReceived(event.data);
 
-        // Bildirim gönderme
         final parsedData = jsonDecode(event.data);
 
         SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -94,7 +139,7 @@ class PusherClientManager {
 
           if (orderUpdates && parsedData["data"] is Map && parsedData["data"]["order_status"] == 1) {
             notificationService.showNotification(
-              'Nargilem',
+              'NargileHub',
               'Hey!!! Yeni bir siparişiniz var🧐',
             );
             notificationSent = true;
@@ -102,18 +147,25 @@ class PusherClientManager {
 
           if (emberUpdates && parsedData["pageName"] == "emberPage") {
             notificationService.showNotification(
-              'Nargilem',
+              'NargileHub',
               'Hey!!! Müşteri Köz İstiyor🔥',
             );
             notificationSent = true;
           }
-
+          if (emberUpdates && parsedData["pageName"] == "employeePage") {
+            notificationService.showNotification(
+              'NargileHub',
+              'Hey!!! Müşteri Sizi Çagırıyor🔥',
+            );
+            notificationSent = true;
+          }
           if (!notificationSent && parsedData.containsKey('pageName') && parsedData["pageName"] == "orders") {
             notificationService.showNotification(
-              'Nargilem',
+              'NargileHub',
               'Hey!!! Yeni bir bildiriminiz var🧐',
             );
           }
+
         }
 
         if (parsedData["status"] == 200 && parsedData.containsKey('data')) {
@@ -122,25 +174,32 @@ class PusherClientManager {
             NotificationModel notification;
             if (data["order_status"] == 1) {
               notification = NotificationModel(
-                title: 'Masa  ${data["table_id"]}',
+                title: 'Masa ${data["table_id"]}',
                 body: 'Yeni bir siparişiniz var🧐',
                 isRead: false,
                 uuid: '${data["uuid"]}',
                 timestamp: DateTime.now(),
-
               );
             } else if (parsedData["pageName"] == "emberPage") {
               notification = NotificationModel(
-                title: 'Masa  ${data["table_id"]}',
-                body: 'Müşteri Köz Talebinde Bulunudu🔥',
+                title: 'Masa ${data["table_id"]}',
+                body: 'Müşteri Köz Talebinde Bulundu🔥',
+                isRead: false,
+                uuid: '${data["uuid"]}',
+                timestamp: DateTime.now(),
+              );
+            }else if (parsedData["pageName"] == "employeePage"){
+              notification = NotificationModel(
+                title: 'Masa ${data["table_id"]}',
+                body: 'Muşteri Sizi Çağırıyor🗣️',
                 isRead: false,
                 uuid: '${data["uuid"]}',
                 timestamp: DateTime.now(),
               );
             } else {
               notification = NotificationModel(
-                title: 'Masa  ${data["table_id"]}',
-                body: 'Spariş Durumu Gücellendi🧐',
+                title: 'Masa ${data["table_id"]}',
+                body: 'Sipariş Durumu Güncellendi🧐',
                 isRead: false,
                 uuid: '${data["uuid"]}',
                 timestamp: DateTime.now(),
@@ -152,15 +211,8 @@ class PusherClientManager {
       });
     } catch (e) {
       print("Error subscribing to channel: $e");
+      isSubscribed = false;
       _retryConnection();
     }
-  }
-
-  void disconnect() {
-    if (channel != null) {
-      pusher.unsubscribe(channel!.name);
-      channel = null;
-    }
-    pusher.disconnect();
   }
 }

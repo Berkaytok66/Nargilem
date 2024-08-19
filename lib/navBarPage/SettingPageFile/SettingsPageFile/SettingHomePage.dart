@@ -104,23 +104,30 @@ class _SettingHomePageState extends State<SettingHomePage> with SingleTickerProv
               ),
             ),
             padding: EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Uygulama Ayarları',
-                  style: TextStyle(
-                    color: HexColor("#f3f4f6"),
-                    fontSize: 20,
-                  ),
-                ),
-                SizedBox(height: 4.0),
-                Text(
-                  'Uygulama içi dil, tema ve diğer ayarları bu menüden yapabilirsiniz.',
-                  style: TextStyle(
-                    color: HexColor("#f3f4f6"),
-                    fontSize: 16,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Uygulama Ayarları',
+                      style: TextStyle(
+                        color: HexColor("#f3f4f6"),
+                        fontSize: 20,
+                      ),
+                    ),
+                    SizedBox(height: 4.0),
+                    Text(
+                      'Uygulama içi ayarları buradan yapabilirsiniz.',
+                      style: TextStyle(
+                        color: HexColor("#f3f4f6"),
+                        fontSize: 16,
+                      ),
+
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ],
             ),

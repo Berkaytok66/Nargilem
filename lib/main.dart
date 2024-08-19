@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:nargilem/AppLocalizations/AppLocalizations.dart';
-import 'package:nargilem/Global/PusherClient.dart';
+import 'package:nargilem/Global/NotificationService.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:nargilem/Global/PusherClient.dart';
 import 'package:nargilem/Login/Login.dart';
 import 'package:nargilem/navBarPage/NavBar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workmanager/workmanager.dart';
 
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+
+  runApp(MyApp());
 }
 
 class MyApp extends StatefulWidget {

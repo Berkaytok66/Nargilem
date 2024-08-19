@@ -43,6 +43,7 @@ class _SingleOrderDetailScreenState extends State<SingleOrderDetailScreen> {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['result_type'] == 'success') {
+
         return data['data'];
       } else {
         throw Exception('Failed to load order details');
@@ -302,6 +303,7 @@ class _SingleOrderDetailScreenState extends State<SingleOrderDetailScreen> {
             final tobaccoBlend = orderDetails['tobacco_blend'];
             final orderExtras = orderDetails['order_extras'] ?? [];
             String Durum;
+            String OrderTypeId;
             Color DurumRenk;
 
             switch (order['status']) {
@@ -323,6 +325,18 @@ class _SingleOrderDetailScreenState extends State<SingleOrderDetailScreen> {
                 break;
               default:
                 Durum = "Bilinmiyor";
+                DurumRenk = Colors.grey;
+                break;
+            }
+            switch (order['order_type_id']) {
+              case 1:
+                OrderTypeId = "Nargile";
+                break;
+              case 2:
+                OrderTypeId = "Yeni Kafa";
+                break;
+              default:
+                OrderTypeId = "Bilinmiyor";
                 DurumRenk = Colors.grey;
                 break;
             }
@@ -373,14 +387,28 @@ class _SingleOrderDetailScreenState extends State<SingleOrderDetailScreen> {
                         ),
                         const SizedBox(height: 15,),
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const FaIcon(FontAwesomeIcons.clock, color: Colors.white,),
-                            const SizedBox(width: 10),
+                            Row(
+                              children: [
+                                const FaIcon(FontAwesomeIcons.clock, color: Colors.white,size: 15,),
+                                const SizedBox(width: 10),
+                                Text(
+                                  formatDateTime(order['created_at']),
+                                  style: TextStyle(
+                                    color: HexColor("#f3f4f6"),
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+
                             Text(
-                              formatDateTime(order['created_at']),
+                              OrderTypeId,
                               style: TextStyle(
-                                color: HexColor("#f3f4f6"),
-                                fontSize: 16,
+                                color: DurumRenk,
+                                fontSize: 15,
                               ),
                             ),
                           ],

@@ -56,6 +56,7 @@ dependencies:
   flutter_localization: ^0.2.0
   permission_handler: ^11.3.1
   flutter_launcher_icons: ^0.13.1
+  workmanager: ^0.5.2
 
 flutter_icons:
   android: "launcher_icon"
@@ -92,6 +93,7 @@ flutter:
      - images/ic_launcher.png
      - images/table_view_info_image.png
      - images/nargile_images.png
+     - images/unauthorized_action.png
      - images/settings/stock_management.png
      - images/settings/table_management.png
      - images/settings/settings.png

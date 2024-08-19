@@ -6,6 +6,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:nargilem/Global/SabitDegiskenler.dart';
 import 'package:nargilem/Global/ToastHelper.dart';
+import 'package:nargilem/navBarPage/SettingPageFile/AromaPageFile/AromaHomePage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -215,6 +216,18 @@ class _MixBrandPageState extends State<MixBrandPage> with SingleTickerProviderSt
               : Colors.white,
         ),
         title: const Text("Marka Ekle", style: TextStyle(color: Colors.white)),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            // İkona tıklandığında yapılacak işlemler
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AromaHomePage(),
+              ),
+            );
+          },
+        ),
       ),
       body: Column(
         children: [
@@ -329,6 +342,7 @@ class _MixBrandPageState extends State<MixBrandPage> with SingleTickerProviderSt
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
                                             ),
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
                                         SizedBox(height: 10.0),

@@ -161,8 +161,6 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  _controllerEmail.text = "test@example.com";
-                  _controllerPassword.text = "password";
                   loginUser(_controllerEmail.text, _controllerPassword.text);
                 },
                 style: ElevatedButton.styleFrom(

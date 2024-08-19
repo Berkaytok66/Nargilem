@@ -7,6 +7,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:http/http.dart' as http;
 import 'package:nargilem/Global/SabitDegiskenler.dart';
 import 'package:nargilem/Global/ToastHelper.dart';
+import 'package:nargilem/navBarPage/SettingPageFile/AromaPageFile/AromaHomePage.dart';
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -176,6 +177,18 @@ class _AromaPageState extends State<AromaPageType> with SingleTickerProviderStat
               : Colors.white,
         ),
         title: const Text("Aroma Ekle",style: TextStyle(color: Colors.white),),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            // İkona tıklandığında yapılacak işlemler
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AromaHomePage(),
+              ),
+            );
+          },
+        ),
       ),
       body: Column(
         children: [
@@ -210,7 +223,7 @@ class _AromaPageState extends State<AromaPageType> with SingleTickerProviderStat
                             }
                           },
                         ),
-                        hintText: 'Örn. Yaban Mersini',
+                        hintText: 'Örn. Tatlı',
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.text,
